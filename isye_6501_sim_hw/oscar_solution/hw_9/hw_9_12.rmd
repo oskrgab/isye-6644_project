@@ -1,0 +1,54 @@
+---
+title: "Homework 9 - Questions 12.1 - 12.2"
+date: 3/23/2021
+output: html_document
+---
+
+## Question 12.1
+Describe a situation or problem from your job, everyday life, current events, etc., for which a design of experiments
+approach would be appropriate.
+
+### Solution 12.1
+In the O&G industry we build production profiles that rely on uncertain variables in each of wellbores we plan.
+For instance, these profiles depend on the estimated initial rate, which at same time depends on the petrophysical
+properties of the well (permeability, reservoir thickness, porosity, pressure) and since we have limited information,
+they are a good candidate for DOE. It also has a decline variable that indicates what percentage of production is
+decline from month to month.
+
+Lastly we have the amount of time that well is going to produce which also depends on the well economics and minimum
+production rates.
+
+We could design an experiment to have the estimated range and distribution of the estimated production profile by
+assigning different distributions to the mentioned variables and run them thousands of times to have the result.
+
+---
+
+## Question 12.2
+To determine the value of 10 different yes/no features to the market value of a house (large yard, solar roof, etc.), a
+real estate agent plans to survey 50 potential buyers, showing a fictitious house with different combinations of
+features.  To reduce the survey size, the agent wants to show just 16 fictitious houses. Use R’s FrF2 function
+(in the FrF2 package) to find a fractional factorial design for this experiment: what set of features should each of
+the 16 fictitious houses have?  Note: the output of FrF2 is “1” (include) or  “-1” (don’t include) for each feature.
+
+### Solution 12.2
+We will use the FrF2 function to accomplish this task. I will give some names to the features to make it more visual.
+For this case, the number of runs will reflect the number of fictitious houses the agent wants to show which is **16**,
+and the number of factors is **10**, which are yes/no questions for the survey.
+
+```{r message = FALSE, warning = FALSE, results = 'asis'}
+library(FrF2)
+library(knitr)
+set.seed(1)
+factor_names <- c("solar.roof", "large.yard", "big.kitchen", "pool", "jacuzzy", "safe.neighborhood", "bbq",
+                  "large.basement", "dedicated studio", "terrace")
+doe <- FrF2(nruns = 16, nfactors = 10, factor.names = factor_names)
+kable(doe, row.names = TRUE)
+```
+The results above show that the experiment is designed in a way that only 4-5 features are accounted in each one of the houses.
+There is only one house (15) which has all these features. We can see that the design is certainly helpful in reducing
+the size of the surveys and at the same time sampling between different features in the houses.
+
+Also, notice that *each pair of choices* are selected the same number of times (in this case **4 times**) and that *each choice*
+is selected the same number of times (**8 times**). These are both characteristics of a fractional factorial design
+
+In contrast, a *full factorial design* would have required **2^10 = 1024** fictitious houses to get the full sampling space.
