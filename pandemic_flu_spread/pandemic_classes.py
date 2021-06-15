@@ -96,10 +96,10 @@ class RecoveredStudent(InfectedStudent):
             raise TypeError(f"{infected} is not an InfectedStudent object")
 
     def __str__(self):
-        return f"Infected st: {self.name}"
+        return f"Recovered st: {self.name}"
 
     def __repr__(self):
-        return f"Infected st: {self.name}"
+        return f"Recovered st: {self.name}"
 
 
 class PandemicSim:
