@@ -17,7 +17,6 @@ class Student:
 
 
 class InfectedStudent(Student):
-
     default_prob_infection = None
     default_days_to_recover = None
 
@@ -55,7 +54,8 @@ class InfectedStudent(Student):
 
     def infect_students(self, susceptible_students: List[Student]) -> Tuple[List, List]:
         if self.days_to_recover > 0:
-            n_infected = binom.rvs(len(susceptible_students), self.probability_infection)
+            n_infected = binom.rvs(len(susceptible_students),
+                                   self.probability_infection)
             # Even if n_infected is zero, the next lines will return and empty lists
             s_students = random.sample(susceptible_students, n_infected)
             infected_students = [
@@ -103,7 +103,6 @@ class RecoveredStudent(InfectedStudent):
 
 
 class PandemicSim:
-
     _day_col = "day"
     _susceptible_col = "susceptible"
     _infected_col = "infected"
@@ -137,11 +136,12 @@ class PandemicSim:
             s_st, i_st = infected.infect_students(self.s_students)
 
             if debug:
-                [print(f"{x.name} was infected by {infected.name}!!") for x in i_st]
+                [print(f"Day {self.current_day + 1}: {x.name} was infected by "
+                       f"{infected.name}!!") for x in i_st]
 
             infected.sick_day()
             #
-            # ***** 2 - This what will be the initial state in the next day ********
+            # ******* 2 - This will be the initial state in the next day ***************
             # Remove susceptible st that got infected from the susceptible list
             [self.s_students.remove(s) for s in s_st]
             # Add the infected students to the infected list
@@ -155,7 +155,8 @@ class PandemicSim:
                 self.i_students.remove(infected)
 
                 if debug:
-                    print(f"{infected.name} has recovered!!")
+                    print(f"Day {self.current_day + 2}: {infected.name} has "
+                          f"recovered!!")
 
         self.current_day += 1
         self._sim_log[self._day_col].append(self.current_day)
@@ -164,14 +165,66 @@ class PandemicSim:
         self._sim_log[self._recovered_col].append(len(self.r_students))
 
         if len(self.i_students) == 0 and debug:
-            print("Pandemic is over!!!")
+            print(f"Day {self.current_day}: Pandemic is over!!!")
 
-    def run_sim(self, debug=False):
-        if self.sim_days is None:
-            raise ValueError("You have not set the number of simulation days")
+    def run_sim(self, days=None, debug=False):
+        if days is None:
+            if self.sim_days is None:
+                raise ValueError("You have not set the number of simulation days")
+            else:
+                for i in range(self.sim_days):
+                    self.sim_day(debug=debug)
         else:
+            self.sim_days = days
             for i in range(self.sim_days):
                 self.sim_day(debug=debug)
 
+    @classmethod
+    def run_sim_with(cls,
+                     days,
+                     susceptible_students,
+                     infected_students,
+                     probability_infection,
+                     days_to_recover,
+                     debug=False) -> pd.DataFrame:
 
+        # Susceptible students
+        s_students = [Student("st_" + str(i + 1)) for i in range(susceptible_students)]
+        # Infected students
+        i_students = [
+            InfectedStudent("st_" + str(susceptible_students + i + 1),
+                            probability_infection,
+                            days_to_recover)
+            for i in range(infected_students)
+        ]
+        # Set default values for infected students
+        InfectedStudent.default_prob_infection = probability_infection
+        InfectedStudent.default_days_to_recover = days_to_recover
 
+        sim = cls(s_students, i_students)
+        sim.run_sim(days=days, debug=debug)
+
+        return sim.sim_log.copy()
+
+    @classmethod
+    def run_sims_with(cls,
+                      trials,
+                      days,
+                      susceptible_students,
+                      infected_students,
+                      probability_infection,
+                      days_to_recover,
+                      debug=False) -> pd.DataFrame:
+
+        results = pd.DataFrame()
+        for t in range(trials):
+            temp_results = cls.run_sim_with(days,
+                                            susceptible_students,
+                                            infected_students,
+                                            probability_infection,
+                                            days_to_recover,
+                                            debug=debug)
+
+            results = results.append(temp_results)
+
+        return results.groupby("day").mean()

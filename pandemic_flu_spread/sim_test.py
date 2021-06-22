@@ -2,9 +2,11 @@ import pandas as pd
 
 from pandemic_flu_spread.pandemic_classes import Student, InfectedStudent, PandemicSim
 import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style("whitegrid")
 #%% Create initial conditions
 # Susceptible students
-n_s_st = 50
+n_s_st = 20
 s_students = [Student("st_" + str(i + 1)) for i in range(n_s_st)]
 # Infected students
 n_i_st = 1
@@ -18,7 +20,7 @@ i_students = [InfectedStudent("st_" + str(n_s_st + i + 1),
 InfectedStudent.default_prob_infection = prob_infection
 InfectedStudent.default_days_to_recover = days_to_recover
 
-trials = 500
+trials = 2000
 results = pd.DataFrame()
 trial_col = "trial"
 for t in range(trials):
@@ -31,6 +33,9 @@ for t in range(trials):
 
 summary = results.groupby("day").mean()
 summary.plot()
+plt.show()
+#%%
+sns.boxplot(x="day", y="infected", data=results.reset_index())
 plt.show()
 #%% Creat pandemic simulation
 sim = PandemicSim(s_students, i_students)
